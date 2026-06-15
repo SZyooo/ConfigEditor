@@ -1,6 +1,0 @@
-D:\AIProjects\ConfigEditor\obj\Debug\ConfigEditor.csproj.AssemblyReference.cache
-D:\AIProjects\ConfigEditor\obj\Debug\ConfigEditor.csproj.CoreCompileInputs.cache
-D:\AIProjects\ConfigEditor\bin\Debug\ConfigEditor.exe
-D:\AIProjects\ConfigEditor\bin\Debug\ConfigEditor.pdb
-D:\AIProjects\ConfigEditor\obj\Debug\ConfigEditor.exe
-D:\AIProjects\ConfigEditor\obj\Debug\ConfigEditor.pdb

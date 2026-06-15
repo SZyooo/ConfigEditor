@@ -48,6 +48,14 @@ namespace ConfigEditor
                 _splitContainer.Panel1MinSize = 200;
                 _splitContainer.Panel2MinSize = 250;
                 _splitContainer.SplitterDistance = 320;
+                if (_treeView.Nodes.Count > 0)
+                {
+                    var firstChild = _treeView.Nodes[0].FirstNode;
+                    if (firstChild != null)
+                        _treeView.SelectedNode = firstChild;
+                    else
+                        _treeView.SelectedNode = _treeView.Nodes[0];
+                }
             };
         }
 
