@@ -434,8 +434,6 @@ namespace ConfigEditor
 
         private void ClearGrid()
         {
-            while (_dataGridView.Controls.Count > 0)
-                _dataGridView.Controls[0].Dispose();
             _dataGridView.Columns.Clear();
             _dataGridView.Rows.Clear();
             _dataGridView.ReadOnly = false;
