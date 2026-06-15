@@ -43,19 +43,22 @@ namespace ConfigEditor
             RebuildTree();
 
             Controls.Add(_splitContainer);
-            Shown += (s, e) =>
+            Load += (s, e) =>
             {
                 _splitContainer.Panel1MinSize = 200;
                 _splitContainer.Panel2MinSize = 250;
                 _splitContainer.SplitterDistance = 320;
-                if (_treeView.Nodes.Count > 0)
+            };
+            Shown += (s, e) =>
+            {
+                BeginInvoke((Action)(() =>
                 {
-                    var firstChild = _treeView.Nodes[0].FirstNode;
-                    if (firstChild != null)
-                        _treeView.SelectedNode = firstChild;
-                    else
-                        _treeView.SelectedNode = _treeView.Nodes[0];
-                }
+                    if (_treeView.Nodes.Count > 0)
+                    {
+                        var firstChild = _treeView.Nodes[0].FirstNode;
+                        _treeView.SelectedNode = firstChild ?? _treeView.Nodes[0];
+                    }
+                }));
             };
         }
 
