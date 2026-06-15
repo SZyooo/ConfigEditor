@@ -231,12 +231,12 @@ namespace ConfigEditor.Services
 
         public static string GetProjectFileFilter()
         {
-            return "Config Editor Project (*.cfgproj)|*.cfgproj|All Files (*.*)|*.*";
+            return "配置编辑器项目 (*.cfgproj)|*.cfgproj|所有文件 (*.*)|*.*";
         }
 
         public static string GetIniFileFilter()
         {
-            return "INI Files (*.ini)|*.ini|All Files (*.*)|*.*";
+            return "INI 文件 (*.ini)|*.ini|所有文件 (*.*)|*.*";
         }
     }
 }

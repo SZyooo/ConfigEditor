@@ -16,6 +16,10 @@ namespace ConfigEditor
         private string _projectFilePath;
         private bool _isModified;
 
+        private ToolStrip _toolStrip;
+        private ToolStripButton _btnAddItem;
+        private ToolStripButton _btnDeleteItem;
+        private ToolStripButton _btnExportAll;
         private SplitContainer _splitContainer;
         private TreeView _treeView;
         private DataGridView _dataGridView;
@@ -27,11 +31,12 @@ namespace ConfigEditor
 
         public MainForm()
         {
-            Text = "Config Editor";
+            Text = "配置编辑器";
             Size = new Size(1100, 700);
             StartPosition = FormStartPosition.CenterScreen;
 
             CreateMenuStrip();
+            CreateToolStrip();
             CreateStatusStrip();
             CreateSplitContainer();
             CreateTreeView();
@@ -42,6 +47,7 @@ namespace ConfigEditor
             UpdateTitle();
             RebuildTree();
 
+            Controls.Add(_toolStrip);
             Controls.Add(_splitContainer);
             Load += (s, e) =>
             {
@@ -66,43 +72,60 @@ namespace ConfigEditor
         {
             var menu = new MenuStrip();
 
-            var fileMenu = menu.Items.Add("&File") as ToolStripMenuItem;
+            var fileMenu = menu.Items.Add("文件(&F)") as ToolStripMenuItem;
             fileMenu.DropDownItems.AddRange(new ToolStripItem[]
             {
-                CreateMenuItem("&New Project", "Ctrl+N", (s, e) => NewProject()),
-                CreateMenuItem("&Open...", "Ctrl+O", (s, e) => OpenProject()),
-                CreateMenuItem("&Save", "Ctrl+S", (s, e) => SaveProject()),
-                CreateMenuItem("Save &As...", null, (s, e) => SaveProjectAs()),
+                CreateMenuItem("新建项目(&N)", "Ctrl+N", (s, e) => NewProject()),
+                CreateMenuItem("打开项目(&O)...", "Ctrl+O", (s, e) => OpenProject()),
+                CreateMenuItem("保存(&S)", "Ctrl+S", (s, e) => SaveProject()),
+                CreateMenuItem("另存为(&A)...", null, (s, e) => SaveProjectAs()),
                 new ToolStripSeparator(),
-                CreateMenuItem("&Import INI File...", "Ctrl+I", (s, e) => ImportIniFile()),
-                CreateMenuItem("&Export All", "Ctrl+E", (s, e) => ExportAll()),
+                CreateMenuItem("导入 INI 文件(&I)...", "Ctrl+I", (s, e) => ImportIniFile()),
+                CreateMenuItem("导出全部(&E)", "Ctrl+E", (s, e) => ExportAll()),
                 new ToolStripSeparator(),
-                CreateMenuItem("E&xit", "Alt+F4", (s, e) => Close())
+                CreateMenuItem("退出(&X)", null, (s, e) => Close())
             });
 
-            var editMenu = menu.Items.Add("&Edit") as ToolStripMenuItem;
+            var editMenu = menu.Items.Add("编辑(&E)") as ToolStripMenuItem;
             editMenu.DropDownItems.AddRange(new ToolStripItem[]
             {
-                CreateMenuItem("&Add Config Item", "Ins", (s, e) => AddConfigItem()),
-                CreateMenuItem("&Edit Config Item", "Enter", (s, e) => EditConfigItem()),
-                CreateMenuItem("&Delete Config Item", "Del", (s, e) => DeleteConfigItem()),
+                CreateMenuItem("添加配置项(&A)", "Ins", (s, e) => AddConfigItem()),
+                CreateMenuItem("编辑配置项(&E)", "Enter", (s, e) => EditConfigItem()),
+                CreateMenuItem("删除配置项(&D)", "Del", (s, e) => DeleteConfigItem()),
                 new ToolStripSeparator(),
-                CreateMenuItem("Add &Group...", null, (s, e) => AddGroup()),
-                CreateMenuItem("Add &File...", null, (s, e) => AddFile()),
-                CreateMenuItem("Add &Section...", null, (s, e) => AddSection())
+                CreateMenuItem("添加组(&G)...", null, (s, e) => AddGroup()),
+                CreateMenuItem("添加文件(&F)...", null, (s, e) => AddFile()),
+                CreateMenuItem("添加节(&S)...", null, (s, e) => AddSection())
             });
 
-            var viewMenu = menu.Items.Add("&View") as ToolStripMenuItem;
+            var viewMenu = menu.Items.Add("视图(&V)") as ToolStripMenuItem;
             viewMenu.DropDownItems.AddRange(new ToolStripItem[]
             {
-                CreateMenuItem("&Refresh Tree", "F5", (s, e) => RebuildTree())
+                CreateMenuItem("刷新树(&R)", "F5", (s, e) => RebuildTree())
             });
 
-            var helpMenu = menu.Items.Add("&Help") as ToolStripMenuItem;
-            helpMenu.DropDownItems.Add(new ToolStripMenuItem("&About", null, (s, e) => new AboutForm().ShowDialog(this)));
+            var helpMenu = menu.Items.Add("帮助(&H)") as ToolStripMenuItem;
+            helpMenu.DropDownItems.Add(new ToolStripMenuItem("关于(&A)", null, (s, e) => new AboutForm().ShowDialog(this)));
 
             MainMenuStrip = menu;
             Controls.Add(menu);
+        }
+
+        private void CreateToolStrip()
+        {
+            _toolStrip = new ToolStrip();
+            _toolStrip.Items.Add("新建", null, (s, e) => NewProject()).ToolTipText = "新建项目";
+            _toolStrip.Items.Add("打开", null, (s, e) => OpenProject()).ToolTipText = "打开项目文件";
+            _toolStrip.Items.Add("保存", null, (s, e) => SaveProject()).ToolTipText = "保存项目";
+            _toolStrip.Items.Add(new ToolStripSeparator());
+            _btnAddItem = _toolStrip.Items.Add("添加配置项", null, (s, e) => AddConfigItem()) as ToolStripButton;
+            _btnAddItem.ToolTipText = "添加配置项 (Ins)";
+            _btnDeleteItem = _toolStrip.Items.Add("删除配置项", null, (s, e) => DeleteConfigItem()) as ToolStripButton;
+            _btnDeleteItem.ToolTipText = "删除配置项 (Del)";
+            _toolStrip.Items.Add(new ToolStripSeparator());
+            _toolStrip.Items.Add("导入 INI", null, (s, e) => ImportIniFile()).ToolTipText = "导入现有的 INI 配置文件";
+            _btnExportAll = _toolStrip.Items.Add("导出全部", null, (s, e) => ExportAll()) as ToolStripButton;
+            _btnExportAll.ToolTipText = "导出所有 INI 文件";
         }
 
         private ToolStripMenuItem CreateMenuItem(string text, string shortcut, EventHandler handler)
@@ -127,8 +150,8 @@ namespace ConfigEditor
         private void CreateStatusStrip()
         {
             _statusStrip = new StatusStrip();
-            _statusLabel = new ToolStripStatusLabel("Ready") { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
-            _fileCountLabel = new ToolStripStatusLabel("Files: 0") { TextAlign = ContentAlignment.MiddleRight };
+            _statusLabel = new ToolStripStatusLabel("就绪") { Spring = true, TextAlign = ContentAlignment.MiddleLeft };
+            _fileCountLabel = new ToolStripStatusLabel("文件: 0") { TextAlign = ContentAlignment.MiddleRight };
             _statusStrip.Items.AddRange(new ToolStripItem[] { _statusLabel, _fileCountLabel });
             Controls.Add(_statusStrip);
         }
@@ -205,9 +228,9 @@ namespace ConfigEditor
                 _gridMenu.Items[1].Enabled = canEdit && _dataGridView.CurrentRow?.Tag != null;
                 _gridMenu.Items[2].Enabled = canEdit && _dataGridView.CurrentRow?.Tag != null;
             };
-            _gridMenu.Items.Add("&Add Item", null, (s, e) => AddConfigItem());
-            _gridMenu.Items.Add("&Edit Item", null, (s, e) => EditConfigItem());
-            _gridMenu.Items.Add("&Delete Item", null, (s, e) => DeleteConfigItem());
+            _gridMenu.Items.Add("添加配置项(&A)", null, (s, e) => AddConfigItem());
+            _gridMenu.Items.Add("编辑配置项(&E)", null, (s, e) => EditConfigItem());
+            _gridMenu.Items.Add("删除配置项(&D)", null, (s, e) => DeleteConfigItem());
             _dataGridView.ContextMenuStrip = _gridMenu;
         }
 
@@ -220,45 +243,45 @@ namespace ConfigEditor
             switch (data.Type)
             {
                 case NodeType.Project:
-                    _treeMenu.Items.Add("Add &File...", null, (s, e) => AddFile());
-                    _treeMenu.Items.Add("Add &Group...", null, (s, e) => AddGroup());
+                    _treeMenu.Items.Add("添加文件(&F)...", null, (s, e) => AddFile());
+                    _treeMenu.Items.Add("添加组(&G)...", null, (s, e) => AddGroup());
                     _treeMenu.Items.Add(new ToolStripSeparator());
-                    _treeMenu.Items.Add("&Import INI...", null, (s, e) => ImportIniFile());
-                    _treeMenu.Items.Add("&Export All", null, (s, e) => ExportAll());
+                    _treeMenu.Items.Add("导入 INI(&I)...", null, (s, e) => ImportIniFile());
+                    _treeMenu.Items.Add("导出全部(&E)", null, (s, e) => ExportAll());
                     break;
                 case NodeType.GlobalConfig:
-                    _treeMenu.Items.Add("&Add Item", null, (s, e) => AddConfigItem());
+                    _treeMenu.Items.Add("添加配置项(&A)", null, (s, e) => AddConfigItem());
                     break;
                 case NodeType.GroupsFolder:
-                    _treeMenu.Items.Add("Add &Group...", null, (s, e) => AddGroup());
+                    _treeMenu.Items.Add("添加组(&G)...", null, (s, e) => AddGroup());
                     break;
                 case NodeType.Group:
-                    _treeMenu.Items.Add("&Edit Group...", null, (s, e) => EditGroup());
-                    _treeMenu.Items.Add("&Delete Group", null, (s, e) => DeleteGroup());
+                    _treeMenu.Items.Add("编辑组(&E)...", null, (s, e) => EditGroup());
+                    _treeMenu.Items.Add("删除组(&D)", null, (s, e) => DeleteGroup());
                     _treeMenu.Items.Add(new ToolStripSeparator());
-                    _treeMenu.Items.Add("&Add Item to Settings", null, (s, e) => AddConfigItem());
-                    _treeMenu.Items.Add("&Manage Members...", null, (s, e) => ManageGroupMembers());
+                    _treeMenu.Items.Add("添加配置项(&A)", null, (s, e) => AddConfigItem());
+                    _treeMenu.Items.Add("管理成员(&M)...", null, (s, e) => ManageGroupMembers());
                     break;
                 case NodeType.GroupSettings:
-                    _treeMenu.Items.Add("&Add Item", null, (s, e) => AddConfigItem());
+                    _treeMenu.Items.Add("添加配置项(&A)", null, (s, e) => AddConfigItem());
                     break;
                 case NodeType.FilesFolder:
-                    _treeMenu.Items.Add("Add &File...", null, (s, e) => AddFile());
-                    _treeMenu.Items.Add("&Import INI...", null, (s, e) => ImportIniFile());
+                    _treeMenu.Items.Add("添加文件(&F)...", null, (s, e) => AddFile());
+                    _treeMenu.Items.Add("导入 INI(&I)...", null, (s, e) => ImportIniFile());
                     break;
                 case NodeType.File:
-                    _treeMenu.Items.Add("Add &Section...", null, (s, e) => AddSection());
+                    _treeMenu.Items.Add("添加节(&S)...", null, (s, e) => AddSection());
                     _treeMenu.Items.Add(new ToolStripSeparator());
-                    _treeMenu.Items.Add("&Edit File...", null, (s, e) => EditFile());
-                    _treeMenu.Items.Add("&Delete File", null, (s, e) => DeleteFile());
+                    _treeMenu.Items.Add("编辑文件(&E)...", null, (s, e) => EditFile());
+                    _treeMenu.Items.Add("删除文件(&D)", null, (s, e) => DeleteFile());
                     _treeMenu.Items.Add(new ToolStripSeparator());
-                    _treeMenu.Items.Add("&Generate This File", null, (s, e) => ExportSingleFile());
+                    _treeMenu.Items.Add("生成此文件(&G)", null, (s, e) => ExportSingleFile());
                     break;
                 case NodeType.Section:
-                    _treeMenu.Items.Add("&Add Item", null, (s, e) => AddConfigItem());
+                    _treeMenu.Items.Add("添加配置项(&A)", null, (s, e) => AddConfigItem());
                     _treeMenu.Items.Add(new ToolStripSeparator());
-                    _treeMenu.Items.Add("&Rename Section", null, (s, e) => RenameSection());
-                    _treeMenu.Items.Add("&Delete Section", null, (s, e) => DeleteSection());
+                    _treeMenu.Items.Add("重命名节(&R)", null, (s, e) => RenameSection());
+                    _treeMenu.Items.Add("删除节(&D)", null, (s, e) => DeleteSection());
                     break;
             }
         }
@@ -270,7 +293,7 @@ namespace ConfigEditor
             _treeView.Nodes.Clear();
             if (_project == null) return;
 
-            var rootNode = new TreeNode($"Project: {_project.Name}")
+            var rootNode = new TreeNode($"项目: {_project.Name}")
             {
                 Tag = new TreeNodeData { Type = NodeType.Project }
             };
@@ -286,18 +309,20 @@ namespace ConfigEditor
         private void AddGlobalConfigNode(TreeNode parent)
         {
             var count = _project.GlobalConfig?.Count ?? 0;
-            var node = new TreeNode($"Global Config ({count} items)")
+            var node = new TreeNode($"全局配置 ({count} 项)")
             {
-                Tag = new TreeNodeData { Type = NodeType.GlobalConfig }
+                Tag = new TreeNodeData { Type = NodeType.GlobalConfig },
+                ToolTipText = "全局配置项会注入到所有 INI 文件中"
             };
             parent.Nodes.Add(node);
         }
 
         private void AddGroupsNode(TreeNode parent)
         {
-            var groupsNode = new TreeNode($"Groups ({_project.Groups.Count})")
+            var groupsNode = new TreeNode($"配置组 ({_project.Groups.Count})")
             {
-                Tag = new TreeNodeData { Type = NodeType.GroupsFolder }
+                Tag = new TreeNodeData { Type = NodeType.GroupsFolder },
+                ToolTipText = "配置组中的设置会注入到组内所有成员文件中"
             };
 
             foreach (var group in _project.Groups)
@@ -307,13 +332,14 @@ namespace ConfigEditor
                     Tag = new TreeNodeData { Type = NodeType.Group, GroupId = group.Id }
                 };
 
-                var settingsNode = new TreeNode($"Settings ({group.Settings.Count})")
+                var settingsNode = new TreeNode($"设置 ({group.Settings.Count})")
                 {
-                    Tag = new TreeNodeData { Type = NodeType.GroupSettings, GroupId = group.Id }
+                    Tag = new TreeNodeData { Type = NodeType.GroupSettings, GroupId = group.Id },
+                    ToolTipText = "此组的配置项会注入到所有成员文件中"
                 };
                 groupNode.Nodes.Add(settingsNode);
 
-                var membersNode = new TreeNode($"Members ({group.MemberFileIds.Count})")
+                var membersNode = new TreeNode($"成员 ({group.MemberFileIds.Count})")
                 {
                     Tag = new TreeNodeData { Type = NodeType.GroupMembers, GroupId = group.Id }
                 };
@@ -338,9 +364,10 @@ namespace ConfigEditor
 
         private void AddFilesNode(TreeNode parent)
         {
-            var filesNode = new TreeNode($"Files ({_project.Files.Count})")
+            var filesNode = new TreeNode($"文件 ({_project.Files.Count})")
             {
-                Tag = new TreeNodeData { Type = NodeType.FilesFolder }
+                Tag = new TreeNodeData { Type = NodeType.FilesFolder },
+                ToolTipText = "每个 INI 文件可包含多个节，每节包含配置项"
             };
 
             foreach (var file in _project.Files)
@@ -360,7 +387,7 @@ namespace ConfigEditor
 
             foreach (var section in file.Sections)
             {
-                var displayName = string.IsNullOrEmpty(section.Name) ? "[root]" : $"[{section.Name}]";
+                var displayName = string.IsNullOrEmpty(section.Name) ? "[根]" : $"[{section.Name}]";
                 var sectionNode = new TreeNode($"{displayName} ({section.Items.Count})")
                 {
                     Tag = new TreeNodeData
@@ -444,31 +471,31 @@ namespace ConfigEditor
         private void ShowEmptyState()
         {
             ClearGrid();
-            _statusLabel.Text = "Ready";
+            _statusLabel.Text = "就绪";
         }
 
         private void ShowProjectSummary()
         {
             ClearGrid();
-            _dataGridView.Columns.Add("Property", "");
-            _dataGridView.Columns.Add("Value", "");
+            _dataGridView.Columns.Add("属性", "");
+            _dataGridView.Columns.Add("值", "");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            _dataGridView.Rows.Add("Project Name", _project.Name);
-            _dataGridView.Rows.Add("Global Config Items", _project.GlobalConfig.Count);
-            _dataGridView.Rows.Add("Groups", _project.Groups.Count);
-            _dataGridView.Rows.Add("Files", _project.Files.Count);
+            _dataGridView.Rows.Add("项目名称", _project.Name);
+            _dataGridView.Rows.Add("全局配置项", _project.GlobalConfig.Count);
+            _dataGridView.Rows.Add("配置组", _project.Groups.Count);
+            _dataGridView.Rows.Add("INI 文件", _project.Files.Count);
             _dataGridView.Rows.Add("", "");
-            _dataGridView.Rows.Add("Configuration Priority", "Global < Group < File < Section");
-            _dataGridView.Rows.Add("Tip", "Use File menu or right-click tree to add items");
+            _dataGridView.Rows.Add("配置优先级", "全局 < 组 < 文件 < 节 (越具体优先级越高)");
+            _dataGridView.Rows.Add("操作提示", "使用顶部工具栏或右键菜单添加文件和配置项");
             _dataGridView.ReadOnly = true;
-            _statusLabel.Text = $"Project: {_project.Name}";
+            _statusLabel.Text = $"项目: {_project.Name}";
         }
 
         private void ShowGlobalConfig()
         {
             ShowConfigItemList(
                 _project.GlobalConfig,
-                "Global Config",
+                "全局配置",
                 showSection: true,
                 onAdd: () => AddConfigItem(),
                 canEdit: true
@@ -481,7 +508,7 @@ namespace ConfigEditor
             if (group == null) return;
             ShowConfigItemList(
                 group.Settings,
-                $"Group: {group.Name}",
+                $"组: {group.Name}",
                 showSection: true,
                 onAdd: () => AddConfigItem(),
                 canEdit: true
@@ -494,8 +521,8 @@ namespace ConfigEditor
             var group = FindGroup(groupId);
             if (group == null) return;
 
-            _dataGridView.Columns.Add("FileName", "File Name");
-            _dataGridView.Columns.Add("OutputPath", "Output Path");
+            _dataGridView.Columns.Add("FileName", "文件名");
+            _dataGridView.Columns.Add("OutputPath", "输出路径");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             foreach (var fileId in group.MemberFileIds)
@@ -506,7 +533,7 @@ namespace ConfigEditor
             }
 
             _dataGridView.ReadOnly = true;
-            _statusLabel.Text = $"Members of group '{group.Name}': {group.MemberFileIds.Count} files";
+            _statusLabel.Text = $"组 '{group.Name}' 的成员: {group.MemberFileIds.Count} 个文件";
         }
 
         private void ShowGroupSummary(string groupId)
@@ -515,7 +542,7 @@ namespace ConfigEditor
             if (group == null) return;
             ShowConfigItemList(
                 group.Settings,
-                $"Group: {group.Name}",
+                $"组: {group.Name}",
                 showSection: true,
                 onAdd: () => AddConfigItem(),
                 canEdit: true
@@ -532,7 +559,7 @@ namespace ConfigEditor
 
             ShowConfigItemList(
                 section.Items,
-                $"File: {file.FileName}  |  Section: {(string.IsNullOrEmpty(sectionName) ? "[root]" : "[" + sectionName + "]")}",
+                $"文件: {file.FileName}  |  节: {(string.IsNullOrEmpty(sectionName) ? "[根]" : "[" + sectionName + "]")}",
                 showSection: false,
                 onAdd: () => AddConfigItem(),
                 canEdit: true
@@ -545,10 +572,10 @@ namespace ConfigEditor
             if (file == null) return;
 
             ClearGrid();
-            _dataGridView.Columns.Add("Section", "Section");
-            _dataGridView.Columns.Add("Key", "Key");
-            _dataGridView.Columns.Add("Value", "Value");
-            _dataGridView.Columns.Add("Source", "Source");
+            _dataGridView.Columns.Add("Section", "节");
+            _dataGridView.Columns.Add("Key", "键");
+            _dataGridView.Columns.Add("Value", "值");
+            _dataGridView.Columns.Add("Source", "来源");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             var allSections = ProjectService.GetAllSections(_project, file);
@@ -558,14 +585,14 @@ namespace ConfigEditor
                 var source = ProjectService.GetEffectiveSourceString(_project, file, section.Name);
                 foreach (var item in resolved)
                 {
-                    var displaySection = string.IsNullOrEmpty(section.Name) ? "[root]" : section.Name;
+                    var displaySection = string.IsNullOrEmpty(section.Name) ? "[根]" : section.Name;
                     _dataGridView.Rows.Add(displaySection, item.Key, item.Value, source);
                 }
             }
 
             _dataGridView.ReadOnly = true;
             _dataGridView.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 250);
-            _statusLabel.Text = $"Effective Config: {file.FileName}";
+            _statusLabel.Text = $"有效配置: {file.FileName}";
         }
 
         private void ShowConfigItemList(List<ConfigItem> items, string title, bool showSection, Action onAdd, bool canEdit)
@@ -574,19 +601,19 @@ namespace ConfigEditor
 
             if (showSection)
             {
-                _dataGridView.Columns.Add("Section", "Section");
+                _dataGridView.Columns.Add("Section", "所属节");
                 _dataGridView.Columns["Section"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             }
-            _dataGridView.Columns.Add("Key", "Key");
-            _dataGridView.Columns.Add("Value", "Value");
-            _dataGridView.Columns.Add("Comment", "Comment");
+            _dataGridView.Columns.Add("Key", "键");
+            _dataGridView.Columns.Add("Value", "值");
+            _dataGridView.Columns.Add("Comment", "备注");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             if (showSection)
             {
                 foreach (var item in items)
                 {
-                    var displaySection = string.IsNullOrEmpty(item.Section) ? "[root]" : item.Section;
+                    var displaySection = string.IsNullOrEmpty(item.Section) ? "[根]" : item.Section;
                     _dataGridView.Rows.Add(displaySection, item.Key, item.Value, item.Comment);
                     _dataGridView.Rows[_dataGridView.Rows.Count - 1].Tag = item;
                 }
@@ -604,15 +631,15 @@ namespace ConfigEditor
             _dataGridView.AllowUserToAddRows = canEdit;
             _dataGridView.AllowUserToDeleteRows = canEdit;
 
-            _statusLabel.Text = title + $" ({items.Count} items)";
+            _statusLabel.Text = title + $" ({items.Count} 项)";
         }
 
         private void ShowGroupsSummary()
         {
             ClearGrid();
-            _dataGridView.Columns.Add("Name", "Group Name");
-            _dataGridView.Columns.Add("Settings", "Settings");
-            _dataGridView.Columns.Add("Members", "Member Files");
+            _dataGridView.Columns.Add("Name", "组名称");
+            _dataGridView.Columns.Add("Settings", "配置项数");
+            _dataGridView.Columns.Add("Members", "成员文件数");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             foreach (var group in _project.Groups)
@@ -621,15 +648,15 @@ namespace ConfigEditor
             }
 
             _dataGridView.ReadOnly = true;
-            _statusLabel.Text = $"Groups: {_project.Groups.Count}";
+            _statusLabel.Text = $"配置组: {_project.Groups.Count}";
         }
 
         private void ShowFilesSummary()
         {
             ClearGrid();
-            _dataGridView.Columns.Add("FileName", "File Name");
-            _dataGridView.Columns.Add("Sections", "Sections");
-            _dataGridView.Columns.Add("OutputPath", "Output Path");
+            _dataGridView.Columns.Add("FileName", "文件名");
+            _dataGridView.Columns.Add("Sections", "节数");
+            _dataGridView.Columns.Add("OutputPath", "输出路径");
             _dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
             foreach (var file in _project.Files)
@@ -639,7 +666,7 @@ namespace ConfigEditor
             }
 
             _dataGridView.ReadOnly = true;
-            _statusLabel.Text = $"Files: {_project.Files.Count}";
+            _statusLabel.Text = $"文件: {_project.Files.Count}";
         }
 
         #endregion
@@ -667,12 +694,12 @@ namespace ConfigEditor
             var row = _dataGridView.Rows[e.RowIndex];
             if (row.Tag is ConfigItem item)
             {
-                var showSection = _dataGridView.Columns.Contains("Section");
+                var showSection = _dataGridView.Columns.Contains("所属节");
                 int col = 0;
                 if (showSection)
                 {
                     var sectionVal = row.Cells[col].Value as string ?? "";
-                    item.Section = sectionVal == "[root]" ? "" : sectionVal;
+                    item.Section = sectionVal == "[根]" ? "" : sectionVal;
                     col++;
                 }
                 item.Key = row.Cells[col].Value as string ?? "";
@@ -786,7 +813,7 @@ namespace ConfigEditor
             var item = _dataGridView.CurrentRow.Tag as ConfigItem;
             if (item == null) return;
 
-            if (MessageBox.Show($"Delete config item '{item.Key}'?", "Confirm",
+            if (MessageBox.Show($"确定删除配置项 '{item.Key}' 吗？", "确认删除",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
@@ -849,7 +876,7 @@ namespace ConfigEditor
             var group = FindGroup(data.GroupId);
             if (group == null) return;
 
-            if (MessageBox.Show($"Delete group '{group.Name}'?", "Confirm",
+            if (MessageBox.Show($"确定删除组 '{group.Name}' 吗？", "确认删除",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
@@ -871,13 +898,13 @@ namespace ConfigEditor
 
             if (availableFiles.Count == 0)
             {
-                MessageBox.Show("No unassigned files available.", "Info",
+                MessageBox.Show("没有可用的文件（所有文件已属于此组）。", "提示",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var fileNames = availableFiles.Select(f => f.FileName).ToArray();
-            var selected = ShowSelectionDialog("Add Member", "Select a file to add:", fileNames);
+            var selected = ShowSelectionDialog("添加成员", "选择一个文件添加到组:", fileNames);
             if (selected < 0) return;
 
             group.MemberFileIds.Add(availableFiles[selected].Id);
@@ -901,8 +928,8 @@ namespace ConfigEditor
             var lb = new ListBox { Location = new Point(12, 40), Size = new Size(360, 180), Items = { } };
             lb.Items.AddRange(items);
 
-            var btnOk = new Button { Text = "OK", Location = new Point(210, 230), Size = new Size(75, 25) };
-            var btnCancel = new Button { Text = "Cancel", Location = new Point(295, 230), Size = new Size(75, 25) };
+            var btnOk = new Button { Text = "确定", Location = new Point(210, 230), Size = new Size(75, 25) };
+            var btnCancel = new Button { Text = "取消", Location = new Point(295, 230), Size = new Size(75, 25) };
 
             int result = -1;
             btnOk.Click += (s, e) =>
@@ -915,7 +942,7 @@ namespace ConfigEditor
                 }
                 else
                 {
-                    MessageBox.Show("Please select an item.");
+                    MessageBox.Show("请选择一个项目。");
                 }
             };
             btnCancel.Click += (s, e) => { form.DialogResult = DialogResult.Cancel; form.Close(); };
@@ -929,7 +956,7 @@ namespace ConfigEditor
         {
             var form = new Form
             {
-                Text = "Add File",
+                Text = "添加文件",
                 Size = new Size(480, 200),
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 StartPosition = FormStartPosition.CenterParent,
@@ -937,19 +964,19 @@ namespace ConfigEditor
                 MinimizeBox = false
             };
 
-            var lblName = new Label { Text = "Display Name:", Location = new Point(12, 15), Size = new Size(100, 23) };
+            var lblName = new Label { Text = "显示名称:", Location = new Point(12, 15), Size = new Size(100, 23) };
             var txtName = new TextBox { Location = new Point(120, 12), Size = new Size(330, 23) };
 
-            var lblPath = new Label { Text = "Output Path:", Location = new Point(12, 45), Size = new Size(100, 23) };
+            var lblPath = new Label { Text = "输出路径:", Location = new Point(12, 45), Size = new Size(100, 23) };
             var txtPath = new TextBox { Location = new Point(120, 42), Size = new Size(250, 23) };
             var btnBrowse = new Button { Text = "...", Location = new Point(375, 41), Size = new Size(30, 23) };
 
-            var btnOk = new Button { Text = "OK", Location = new Point(290, 80), Size = new Size(75, 28) };
-            var btnCancel = new Button { Text = "Cancel", Location = new Point(375, 80), Size = new Size(75, 28) };
+            var btnOk = new Button { Text = "确定", Location = new Point(290, 80), Size = new Size(75, 28) };
+            var btnCancel = new Button { Text = "取消", Location = new Point(375, 80), Size = new Size(75, 28) };
 
             btnBrowse.Click += (s, e) =>
             {
-                var dlg = new SaveFileDialog { Filter = "INI Files (*.ini)|*.ini|All Files (*.*)|*.*" };
+                var dlg = new SaveFileDialog { Filter = "INI 文件 (*.ini)|*.ini|所有文件 (*.*)|*.*" };
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     txtPath.Text = dlg.FileName;
@@ -962,7 +989,7 @@ namespace ConfigEditor
             {
                 if (string.IsNullOrWhiteSpace(txtName.Text))
                 {
-                    MessageBox.Show("Display name is required.");
+                    MessageBox.Show("请输入显示名称。");
                     return;
                 }
                 var file = new IniFileModel(txtName.Text.Trim(), txtPath.Text.Trim());
@@ -992,7 +1019,7 @@ namespace ConfigEditor
 
             var form = new Form
             {
-                Text = "Edit File",
+                Text = "编辑文件",
                 Size = new Size(480, 200),
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 StartPosition = FormStartPosition.CenterParent,
@@ -1000,19 +1027,19 @@ namespace ConfigEditor
                 MinimizeBox = false
             };
 
-            var lblName = new Label { Text = "Display Name:", Location = new Point(12, 15), Size = new Size(100, 23) };
+            var lblName = new Label { Text = "显示名称:", Location = new Point(12, 15), Size = new Size(100, 23) };
             var txtName = new TextBox { Text = file.FileName, Location = new Point(120, 12), Size = new Size(330, 23) };
 
-            var lblPath = new Label { Text = "Output Path:", Location = new Point(12, 45), Size = new Size(100, 23) };
+            var lblPath = new Label { Text = "输出路径:", Location = new Point(12, 45), Size = new Size(100, 23) };
             var txtPath = new TextBox { Text = file.OutputPath, Location = new Point(120, 42), Size = new Size(250, 23) };
             var btnBrowse = new Button { Text = "...", Location = new Point(375, 41), Size = new Size(30, 23) };
 
-            var btnOk = new Button { Text = "OK", Location = new Point(290, 80), Size = new Size(75, 28) };
-            var btnCancel = new Button { Text = "Cancel", Location = new Point(375, 80), Size = new Size(75, 28) };
+            var btnOk = new Button { Text = "确定", Location = new Point(290, 80), Size = new Size(75, 28) };
+            var btnCancel = new Button { Text = "取消", Location = new Point(375, 80), Size = new Size(75, 28) };
 
             btnBrowse.Click += (s, e) =>
             {
-                var dlg = new SaveFileDialog { Filter = "INI Files (*.ini)|*.ini|All Files (*.*)|*.*", FileName = txtPath.Text };
+                var dlg = new SaveFileDialog { Filter = "INI 文件 (*.ini)|*.ini|所有文件 (*.*)|*.*", FileName = txtPath.Text };
                 if (dlg.ShowDialog() == DialogResult.OK)
                     txtPath.Text = dlg.FileName;
             };
@@ -1021,7 +1048,7 @@ namespace ConfigEditor
             {
                 if (string.IsNullOrWhiteSpace(txtName.Text))
                 {
-                    MessageBox.Show("Display name is required.");
+                    MessageBox.Show("请输入显示名称。");
                     return;
                 }
                 file.FileName = txtName.Text.Trim();
@@ -1049,8 +1076,8 @@ namespace ConfigEditor
             var file = FindFile(data.FileId);
             if (file == null) return;
 
-            if (MessageBox.Show($"Delete file '{file.FileName}'?\nThis will also remove it from any groups.",
-                "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (MessageBox.Show($"确定删除文件 '{file.FileName}' 吗？\n将从所有组中移除此文件。",
+                "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
             foreach (var group in _project.Groups)
@@ -1068,13 +1095,13 @@ namespace ConfigEditor
             var file = FindFile(data.FileId);
             if (file == null) return;
 
-            var input = ShowInputDialog("Add Section", "Enter section name (leave empty for root section):");
+            var input = ShowInputDialog("添加节", "输入节名称（留空为根节）:");
             if (input == null) return;
 
             var sectionName = input.Trim();
             if (file.Sections.Any(s => s.Name == sectionName))
             {
-                MessageBox.Show("A section with this name already exists.", "Error",
+                MessageBox.Show("此节名称已存在。", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -1093,13 +1120,13 @@ namespace ConfigEditor
             var section = file.Sections.FirstOrDefault(s => s.Name == data.SectionName);
             if (section == null) return;
 
-            var input = ShowInputDialog("Rename Section", "Enter new section name (leave empty for root):", section.Name);
+            var input = ShowInputDialog("重命名节", "输入新的节名称（留空为根节）:", section.Name);
             if (input == null) return;
 
             var newName = input.Trim();
             if (newName != section.Name && file.Sections.Any(s => s.Name == newName))
             {
-                MessageBox.Show("A section with this name already exists.", "Error",
+                MessageBox.Show("此节名称已存在。", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -1118,8 +1145,8 @@ namespace ConfigEditor
             var section = file.Sections.FirstOrDefault(s => s.Name == data.SectionName);
             if (section == null) return;
 
-            var displayName = string.IsNullOrEmpty(section.Name) ? "[root]" : $"[{section.Name}]";
-            if (MessageBox.Show($"Delete section {displayName}?", "Confirm",
+            var displayName = string.IsNullOrEmpty(section.Name) ? "[根]" : $"[{section.Name}]";
+            if (MessageBox.Show($"确定删除节 {displayName} 吗？", "确认删除",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
@@ -1164,8 +1191,8 @@ namespace ConfigEditor
             UpdateTitle();
             RebuildTree();
             ClearGrid();
-            _statusLabel.Text = "New project created";
-            _fileCountLabel.Text = "Files: 0";
+            _statusLabel.Text = "已创建新项目";
+            _fileCountLabel.Text = "文件: 0";
         }
 
         private void OpenProject()
@@ -1180,12 +1207,12 @@ namespace ConfigEditor
                 _isModified = false;
                 UpdateTitle();
                 RebuildTree();
-                _statusLabel.Text = $"Opened: {dlg.FileName}";
+                _statusLabel.Text = $"已打开: {dlg.FileName}";
                 UpdateFileCount();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to open project:\n{ex.Message}", "Error",
+                MessageBox.Show($"打开项目失败:\n{ex.Message}", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1200,12 +1227,12 @@ namespace ConfigEditor
                 ProjectService.SaveToJson(_project, _projectFilePath);
                 _isModified = false;
                 UpdateTitle();
-                _statusLabel.Text = $"Saved: {_projectFilePath}";
+                _statusLabel.Text = $"已保存: {_projectFilePath}";
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to save project:\n{ex.Message}", "Error",
+                MessageBox.Show($"保存项目失败:\n{ex.Message}", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
@@ -1224,19 +1251,19 @@ namespace ConfigEditor
         {
             if (_project.Files.Count == 0)
             {
-                MessageBox.Show("No files to export.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("没有可导出的文件。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             try
             {
                 ProjectService.ExportAll(_project);
-                _statusLabel.Text = $"Exported {_project.Files.Count} files";
-                MessageBox.Show($"Successfully exported {_project.Files.Count} files.", "Export Complete",
+                _statusLabel.Text = $"已导出 {_project.Files.Count} 个文件";
+                MessageBox.Show($"成功导出 {_project.Files.Count} 个文件。", "导出完成",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Export failed:\n{ex.Message}", "Error",
+                MessageBox.Show($"导出失败:\n{ex.Message}", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1251,13 +1278,13 @@ namespace ConfigEditor
             try
             {
                 ProjectService.ExportSingleFile(_project, file);
-                _statusLabel.Text = $"Generated: {file.FileName}";
-                MessageBox.Show($"Generated: {file.OutputPath}", "Success",
+                _statusLabel.Text = $"已生成: {file.FileName}";
+                MessageBox.Show($"已生成: {file.OutputPath}", "成功",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to generate file:\n{ex.Message}", "Error",
+                MessageBox.Show($"生成文件失败:\n{ex.Message}", "错误",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1278,8 +1305,8 @@ namespace ConfigEditor
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to import '{Path.GetFileName(filePath)}':\n{ex.Message}",
-                        "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"导入 '{Path.GetFileName(filePath)}' 失败:\n{ex.Message}",
+                        "导入错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
 
@@ -1287,7 +1314,7 @@ namespace ConfigEditor
             {
                 SetModified(true);
                 RebuildTree();
-                _statusLabel.Text = $"Imported {count} INI file(s)";
+                _statusLabel.Text = $"已导入 {count} 个 INI 文件";
                 UpdateFileCount();
             }
         }
@@ -1310,19 +1337,19 @@ namespace ConfigEditor
         {
             _isModified = modified;
             UpdateTitle();
-            if (modified) _statusLabel.Text = "Modified";
+            if (modified) _statusLabel.Text = "已修改";
         }
 
         private void UpdateTitle()
         {
             var modified = _isModified ? " *" : "";
-            var name = _project?.Name ?? "Untitled";
-            Text = $"Config Editor - {name}{modified}";
+            var name = _project?.Name ?? "未命名";
+            Text = $"配置编辑器 - {name}{modified}";
         }
 
         private void UpdateFileCount()
         {
-            _fileCountLabel.Text = $"Files: {_project.Files.Count}";
+            _fileCountLabel.Text = $"文件: {_project.Files.Count}";
         }
 
         private string ShowInputDialog(string title, string prompt, string defaultValue = "")
@@ -1339,8 +1366,8 @@ namespace ConfigEditor
 
             var lbl = new Label { Text = prompt, Location = new Point(12, 12), Size = new Size(380, 23) };
             var txt = new TextBox { Text = defaultValue, Location = new Point(12, 40), Size = new Size(380, 23) };
-            var btnOk = new Button { Text = "OK", Location = new Point(230, 75), Size = new Size(75, 28) };
-            var btnCancel = new Button { Text = "Cancel", Location = new Point(315, 75), Size = new Size(75, 28) };
+            var btnOk = new Button { Text = "确定", Location = new Point(230, 75), Size = new Size(75, 28) };
+            var btnCancel = new Button { Text = "取消", Location = new Point(315, 75), Size = new Size(75, 28) };
 
             string result = null;
             btnOk.Click += (s, e) =>
@@ -1363,7 +1390,7 @@ namespace ConfigEditor
 
         private bool ConfirmSave()
         {
-            var result = MessageBox.Show("Save changes?", "Unsaved Changes",
+            var result = MessageBox.Show("是否保存更改？", "未保存的更改",
                 MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
             if (result == DialogResult.Yes) return SaveProject();
             return result == DialogResult.No;
@@ -1394,7 +1421,7 @@ namespace ConfigEditor
                 switch (data.Type)
                 {
                     case NodeType.GlobalConfig:
-                        node.Text = $"Global Config ({_project.GlobalConfig.Count} items)";
+                        node.Text = $"全局配置 ({_project.GlobalConfig.Count} 项)";
                         break;
                     case NodeType.Group:
                         var group = FindGroup(data.GroupId);
@@ -1402,18 +1429,18 @@ namespace ConfigEditor
                         break;
                     case NodeType.GroupSettings:
                         var gs = FindGroup(data.GroupId);
-                        if (gs != null) node.Text = $"Settings ({gs.Settings.Count})";
+                        if (gs != null) node.Text = $"设置 ({gs.Settings.Count})";
                         break;
                     case NodeType.GroupMembers:
                         var gm = FindGroup(data.GroupId);
-                        if (gm != null) node.Text = $"Members ({gm.MemberFileIds.Count})";
+                        if (gm != null) node.Text = $"成员 ({gm.MemberFileIds.Count})";
                         break;
                     case NodeType.Section:
                         var file = FindFile(data.FileId);
                         if (file != null)
                         {
                             var section = file.Sections.FirstOrDefault(s => s.Name == data.SectionName);
-                            var displayName = string.IsNullOrEmpty(data.SectionName) ? "[root]" : $"[{data.SectionName}]";
+                            var displayName = string.IsNullOrEmpty(data.SectionName) ? "[根]" : $"[{data.SectionName}]";
                             node.Text = $"{displayName} ({section?.Items.Count ?? 0})";
                         }
                         break;

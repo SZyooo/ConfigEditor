@@ -56,20 +56,20 @@ namespace ConfigEditor.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "Config Item";
+            this.Text = "配置项";
             this.Size = new Size(480, 280);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterParent;
 
-            _lblKey = new Label { Text = "Key:", Location = new Point(12, 15), Size = new Size(80, 23) };
+            _lblKey = new Label { Text = "键(&K):", Location = new Point(12, 15), Size = new Size(80, 23) };
             _txtKey = new TextBox { Location = new Point(100, 12), Size = new Size(350, 23), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
 
-            _lblValue = new Label { Text = "Value:", Location = new Point(12, 45), Size = new Size(80, 23) };
+            _lblValue = new Label { Text = "值(&V):", Location = new Point(12, 45), Size = new Size(80, 23) };
             _txtValue = new TextBox { Location = new Point(100, 42), Size = new Size(350, 23), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
 
-            _lblSection = new Label { Text = "Section:", Location = new Point(12, 75), Size = new Size(80, 23) };
+            _lblSection = new Label { Text = "所属节(&S):", Location = new Point(12, 75), Size = new Size(80, 23) };
             _cmbSection = new ComboBox
             {
                 Location = new Point(100, 72),
@@ -78,13 +78,13 @@ namespace ConfigEditor.Forms
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
-            _lblComment = new Label { Text = "Comment:", Location = new Point(12, 105), Size = new Size(80, 23) };
+            _lblComment = new Label { Text = "备注(&C):", Location = new Point(12, 105), Size = new Size(80, 23) };
             _txtComment = new TextBox { Location = new Point(100, 102), Size = new Size(350, 60), Multiline = true, AcceptsReturn = false, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
 
-            _btnOk = new Button { Text = "OK", Location = new Point(280, 180), Size = new Size(80, 30), Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            _btnOk = new Button { Text = "确定", Location = new Point(280, 180), Size = new Size(80, 30), Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
             _btnOk.Click += BtnOk_Click;
 
-            _btnCancel = new Button { Text = "Cancel", Location = new Point(370, 180), Size = new Size(80, 30), Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
+            _btnCancel = new Button { Text = "取消", Location = new Point(370, 180), Size = new Size(80, 30), Anchor = AnchorStyles.Bottom | AnchorStyles.Right };
             _btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
 
             this.Controls.AddRange(new Control[]
@@ -102,7 +102,7 @@ namespace ConfigEditor.Forms
         {
             if (string.IsNullOrWhiteSpace(_txtKey.Text))
             {
-                MessageBox.Show("Key cannot be empty.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("键不能为空。", "验证错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

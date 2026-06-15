@@ -7,8 +7,8 @@ namespace ConfigEditor.Forms
     {
         public AboutForm()
         {
-            this.Text = "About Config Editor";
-            this.Size = new Size(360, 200);
+            this.Text = "关于 配置编辑器";
+            this.Size = new Size(360, 220);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -16,7 +16,7 @@ namespace ConfigEditor.Forms
 
             var lblTitle = new Label
             {
-                Text = "Config Editor",
+                Text = "配置编辑器",
                 Font = new Font("Microsoft YaHei", 16, FontStyle.Bold),
                 Location = new Point(20, 20),
                 Size = new Size(300, 40),
@@ -25,16 +25,16 @@ namespace ConfigEditor.Forms
 
             var lblDesc = new Label
             {
-                Text = "A hierarchical multi-level INI configuration editor.\n\nManage global, group, file and section-level\nconfiguration items with override support.",
-                Location = new Point(20, 70),
-                Size = new Size(300, 80),
+                Text = "多层级 INI 配置文件编辑器\n\n支持全局、组、文件、节四级配置\n优先级: 全局 < 组 < 文件 < 节",
+                Location = new Point(20, 65),
+                Size = new Size(300, 90),
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
             var btnOk = new Button
             {
-                Text = "OK",
-                Location = new Point(130, 130),
+                Text = "确定",
+                Location = new Point(130, 150),
                 Size = new Size(80, 30)
             };
             btnOk.Click += (s, e) => { Close(); };
